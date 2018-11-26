@@ -128,13 +128,31 @@ namespace MonoDevelop.Components
 			}
 		}
 
+#if MAC
+		// In light theme:
+		// On the Mac, the default unfocused selection background is lighter, so the icon should be black
+		// but our `sel` icons are white.
+		//
+		// Except in the solution treeview, because the Mac's default unfocused selection background is too light for the
+		// custom treeview background
+		bool? ignoreSelection;
+#else
+		bool? ignoreSelection = false;
+#endif
+		public bool IgnoreSelectionWhenUnfocused { get => ignoreSelection.GetValueOrDefault (); set => ignoreSelection = value; }
 		protected override void Render (Gdk.Drawable window, Gtk.Widget widget, Gdk.Rectangle background_area, Gdk.Rectangle cell_area, Gdk.Rectangle expose_area, Gtk.CellRendererState flags)
 		{
+#if MAC
+			if (!ignoreSelection.HasValue) {
+				ignoreSelection = IdeTheme.UserInterfaceTheme == Theme.Light;
+			}
+#endif
 			var img = GetImage ();
 			if (img == null)
 				return;
 
-			if ((flags & Gtk.CellRendererState.Selected) != 0)
+			var shouldIgnoreSelection = IgnoreSelectionWhenUnfocused && !widget.HasFocus;
+			if (!shouldIgnoreSelection && ((flags & Gtk.CellRendererState.Selected) != 0))
 				img = img.WithStyles ("sel");
 			if (!img.HasFixedSize)
 				img = img.WithSize (Gtk.IconSize.Menu);

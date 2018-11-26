@@ -2699,6 +2699,9 @@ namespace MonoDevelop.Ide.Gui.Components
 
 		public ZoomableCellRendererPixbuf () : base ()
 		{
+#if MAC
+			IgnoreSelectionWhenUnfocused = false;
+#endif
 		}
 
 		public double Zoom {
