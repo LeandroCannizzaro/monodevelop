@@ -76,6 +76,7 @@ namespace MonoDevelop.Ide.Projects
 		{
 			base.GetSize (widget, ref cell_area, out x_offset, out y_offset, out width, out height);
 
+			textWidth = GetTextWidth (widget);
 			int languageRectangleWidth = textWidth + languageLeftHandPadding;
 			if (TemplateHasMultipleLanguages ()) {
 				languageRectangleWidth += languageRightHandPadding + dropdownTriangleWidth + dropdownTriangleRightHandPadding;
@@ -85,6 +86,27 @@ namespace MonoDevelop.Ide.Projects
 			}
 
 			width = languageRectangleWidth;
+		}
+
+		int GetTextWidth (Widget widget)
+		{
+			if (Template == null) {
+				return 0;
+			}
+
+			using (var layout = new Pango.Layout (widget.PangoContext)) {
+				int width = 0;
+				foreach (string language in Template.AvailableLanguages) {
+					SetMarkup (layout, language);
+
+					int currentHeight = 0;
+					int currentWidth = 0;
+					layout.GetPixelSize (out currentWidth, out currentHeight);
+
+					width = Math.Max (currentWidth, width);
+				}
+				return width;
+			}
 		}
 
 		protected override void Render (Gdk.Drawable window, Widget widget, Gdk.Rectangle background_area, Gdk.Rectangle cell_area, Gdk.Rectangle expose_area, CellRendererState flags)
